@@ -281,7 +281,7 @@ async function callLLM({
         ...(model.includes("gpt-oss") ? { reasoning_effort: "low" } : {}),
         ...(json ? { response_format: { type: "json_object" } } : {}),
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: system},
           { role: "user", content: user },
         ],
       }),
@@ -382,7 +382,7 @@ export async function extractNotice({ emailText, attachment }) {
 
   const prompt =
     `Email body:\n${emailText || "(empty)"}\n\n` +
-    `Notice document text:\n${docText.slice(0, 8000) || "(no document text)"}\n\nExtract the notice details.`;
+    `Notice document text:\n${docText.slice(0, 9000) || "(no document text)"}\n\nExtract the notice details.`;
 
   log("LLM", `model: ${s.llmModel} (text extract)`);
   const out = await callLLM({ system: EXTRACT_SYSTEM, user: prompt, json: true });
@@ -412,3 +412,4 @@ Keep the tone professional and simple; explain any jargon.`,
     maxTokens: 3000,
   }).then(stripThink);
 };
+

@@ -17,10 +17,11 @@
 // export const addComment = (taskId, text) => cu(`/task/${taskId}/comment`, { comment_text: text });
 
 
+
 import { settings as s } from "../config.js";
 
 const BASE = "https://api.clickup.com/api/v2";
-// Field ke naam normalize hoke match hote hain: "E-Mail" -> "email", "AI draft Reply" -> "aidraftreply"
+// Field ke naam normalize hoke match hote hain: "EMail" -> "email", "AI draft Reply" -> "aidraftreply"
 const norm = (x) => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const EMAIL_FIELD = "email";
 const DRAFT_FIELD = "aidraftreply";
@@ -78,8 +79,16 @@ export async function syncDraft({ listId, email, name, draft }) {
     });
     created = true;
   }
-  await cu(`/task/${task.id}/field/${draftF.id}`, { method: "POST", body: { value: draft } });
-  return { taskId: task.id, created };
+
+  try {
+    await cu(`/task/${task.id}/field/${draftF.id}`, { method: "POST", body: { value: draft } });
+    return { taskId: task.id, created, via: "field" };
+  } catch (e) {
+    // Free plan pe custom field uses khatam (FIELD_033): draft ko comment bana kar daal do
+    if (!String(e.message).includes("FIELD_033")) throw e;
+    await addComment(task.id, `AI draft reply:\n\n${draft}`);
+    return { taskId: task.id, created, via: "comment" };
+  }
 }
 
 export const addComment = (taskId, text) =>

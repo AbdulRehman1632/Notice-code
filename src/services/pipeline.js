@@ -267,8 +267,6 @@
 //   await c.save();
 //   return true;
 // }
-
-
 import fs from "node:fs/promises";
 import path from "node:path";
 import { settings as s } from "../config.js";
@@ -394,11 +392,12 @@ async function processEmail(m) {
     if (s.clickupApiToken && listId) {
       const r = await clickup.syncDraft({ listId, email: from, name: client.name, draft: c.draft_reply });
       c.clickup_task_id = r.taskId;
+      const where = r.via === "comment" ? "COMMENT mein daal diya (custom field limit poori hai) ⚠️" : "AI draft Reply field update ho gayi ✅";
       log(
         "CLICKUP",
         r.created
-          ? `${from} ka task nahi mila, naya task bana (${r.taskId}) + AI draft Reply bhar di`
-          : `${from} se task match hua (${r.taskId}), AI draft Reply update ho gayi ✅`
+          ? `${from} ka task nahi mila, naya task bana (${r.taskId}), draft: ${where}`
+          : `${from} se task match hua (${r.taskId}), draft: ${where}`
       );
     } else {
       log("CLICKUP", "token/list id nahi hai, skip");
