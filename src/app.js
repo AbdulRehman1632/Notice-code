@@ -119,10 +119,6 @@
 //     app.listen(settings.port, () => console.log(`Server: http://localhost:${settings.port}`));
 //     log("SERVER", `poller chalu (cron: ${settings.pollCron})`);
 //     cron.schedule(settings.pollCron, () => pollInbox().catch((e) => console.error("poll:", e.message)));
-//     app.get("/api/poll", wrap(async (req, res) => {
-//   const result = await pollInbox();
-//   res.json(result);
-// }));
 //   })
 //   .catch((e) => {
 //     console.error("MongoDB connection failed:", e.message);
@@ -252,10 +248,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ detail: "internal server error" });
 });
 
-// Database connection initialization for Vercel
 if (mongoose.connection.readyState === 0) {
   connectDB().catch((e) => console.error("MongoDB connection failed:", e.message));
 }
 
-// Vercel ke liye app export karna zaroori hai
 export default app;
