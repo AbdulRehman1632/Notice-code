@@ -286,6 +286,35 @@ let running = false;
 const ignored = new Set(); // non-notice emails, baar baar log na ho
 
 // Email aate hi poora kaam yahan se shuru hota hai
+
+            // working code
+
+// export async function pollInbox() {
+//   if (running) {
+//     log("POLL", "pichla poll abhi chal raha hai, skip");
+//     return { skipped: true };
+//   }
+//   running = true;
+//   try {
+//     log("POLL", "inbox check ho raha hai...");
+//     const msgs = await zoho.listUnread();
+//     log("POLL", msgs.length ? `${msgs.length} unread email(s) mili` : "koi nayi email nahi");
+//     let created = 0;
+//     for (const m of msgs) {
+//       try {
+//         if (await processEmail(m)) created++;
+//       } catch (e) {
+//         logErr("EMAIL", `process fail (messageId ${m.messageId}): ${e.message}`);
+//       }
+//     }
+//     if (msgs.length) log("POLL", `done: ${created} naye case bane`);
+//     return { checked: msgs.length, created };
+//   } finally {
+//     running = false;
+//   }
+// }
+
+
 export async function pollInbox() {
   if (running) {
     log("POLL", "pichla poll abhi chal raha hai, skip");
@@ -296,16 +325,21 @@ export async function pollInbox() {
     log("POLL", "inbox check ho raha hai...");
     const msgs = await zoho.listUnread();
     log("POLL", msgs.length ? `${msgs.length} unread email(s) mili` : "koi nayi email nahi");
+    
     let created = 0;
-    for (const m of msgs) {
+    
+    const batch = msgs.slice(0, 1);
+    
+    for (const m of batch) {
       try {
         if (await processEmail(m)) created++;
       } catch (e) {
         logErr("EMAIL", `process fail (messageId ${m.messageId}): ${e.message}`);
       }
     }
-    if (msgs.length) log("POLL", `done: ${created} naye case bane`);
-    return { checked: msgs.length, created };
+    
+    if (batch.length) log("POLL", `done: ${created} naye case bane (batch size: 1)`);
+    return { checked: batch.length, created };
   } finally {
     running = false;
   }
@@ -385,6 +419,17 @@ async function processEmail(m) {
     c.last_error = null;
     await c.save();
     log("CASE", `${c.ref_code} -> pending_approval ✅ (approve ka wait)`);
+
+     // Zoho Drafts folder mein bhi draft save karo (fail ho to baaki flow na ruke)
+    try {
+      await zoho.saveDraft({ to: from, subject: c.subject, content: c.draft_reply });
+      log("ZOHO", `draft reply Zoho ke Drafts folder mein save ho gayi ✅ (to: ${from})`);
+    } catch (e) {
+      logErr("ZOHO", `draft save fail (baaki flow chalta rahega): ${e.message}`);
+    }
+
+    // ClickUp: sender ki email se task dhoondo, usme AI draft Reply update karo
+    step = "ClickUp update";
 
     // ClickUp: sender ki email se task dhoondo, usme AI draft Reply update karo
     step = "ClickUp update";

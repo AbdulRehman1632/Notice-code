@@ -65,3 +65,15 @@ export const sendReply = (messageId, { to, subject, content }) =>
       content: content.replace(/\n/g, "<br>"),
     },
   });
+
+  export const saveDraft = ({ to, subject, content }) =>
+  zoho("/messages", {
+    method: "POST",
+    body: {
+      mode: "draft",
+      fromAddress: s.firmEmail,
+      toAddress: to,
+      subject: /^re:/i.test(subject) ? subject : `Re: ${subject}`,
+      content: content.replace(/\n/g, "<br>"),
+    },
+  });
