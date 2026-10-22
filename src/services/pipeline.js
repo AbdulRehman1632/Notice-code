@@ -395,13 +395,19 @@ async function processEmail(m) {
     const emailText = await zoho.getContent(folderId, messageId);
     log("EMAIL", `body parh li (${emailText.length} chars)`);
 
+    // step = "attachment";
+    // const buffer = await zoho.downloadAttachment(folderId, messageId, att.attachmentId);
+    // const file = path.join("uploads", `${c.ref_code}-${att.attachmentName}`);
+    // await fs.mkdir("uploads", { recursive: true });
+    // await fs.writeFile(file, buffer);
+    // c.attachment_path = file;
+    // log("ATTACH", `${att.attachmentName} download hui (${buffer.length} bytes) -> ${file}`);
+    // const attachment = { buffer, mime: MIME[path.extname(att.attachmentName).toLowerCase()] };
+
     step = "attachment";
     const buffer = await zoho.downloadAttachment(folderId, messageId, att.attachmentId);
-    const file = path.join("uploads", `${c.ref_code}-${att.attachmentName}`);
-    await fs.mkdir("uploads", { recursive: true });
-    await fs.writeFile(file, buffer);
-    c.attachment_path = file;
-    log("ATTACH", `${att.attachmentName} download hui (${buffer.length} bytes) -> ${file}`);
+    c.attachment_path = att.attachmentName;
+    log("ATTACH", `${att.attachmentName} download hui (${buffer.length} bytes) - Memory buffer ready ✅`);
     const attachment = { buffer, mime: MIME[path.extname(att.attachmentName).toLowerCase()] };
 
     step = "LLM extract";
